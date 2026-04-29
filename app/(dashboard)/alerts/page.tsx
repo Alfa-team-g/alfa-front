@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 
 export default function AlertsPage() {
-  const { alerts, alertRegistrations } = useDashboard();
+  const { alerts, alertRegistrations, isLoading } = useDashboard();
   const [search, setSearch] = useState("");
   const [onlyPromo, setOnlyPromo] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<{
@@ -92,12 +93,26 @@ export default function AlertsPage() {
         </div>
       </div>
 
-      <AlertsList showAll searchTerm={search} onlyPromo={onlyPromo} variant="catalog" />
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </div>
+      ) : (
+        <AlertsList showAll searchTerm={search} onlyPromo={onlyPromo} variant="catalog" />
+      )}
 
       <div className="rounded-xl border border-border bg-card p-4">
         <h2 className="mb-3 text-base font-semibold">Pessoas monitoradas</h2>
         <div className="space-y-2">
-          {registrationsWithMatch.length === 0 ? (
+          {isLoading ? (
+            <>
+              <Skeleton className="h-10 w-full rounded-md" />
+              <Skeleton className="h-10 w-full rounded-md" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </>
+          ) : registrationsWithMatch.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma pessoa vinculada ainda.</p>
           ) : (
             registrationsWithMatch.map(({ registration, matchedAlert }) => (

@@ -9,7 +9,6 @@ import {
   Users,
   Bell,
   PlusCircle,
-  Settings,
   X,
   Menu,
 } from 'lucide-react'
@@ -21,7 +20,6 @@ const navigation = [
   { name: 'Pessoas', href: '/people', icon: Users },
   { name: 'Alertas', href: '/alerts', icon: Bell },
   { name: 'Novo alerta', href: '/alerts/new', icon: PlusCircle },
-  { name: 'Agendador', href: '/settings', icon: Settings },
 ]
 
 export function Sidebar() {

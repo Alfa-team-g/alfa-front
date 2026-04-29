@@ -6,9 +6,10 @@ import { SchedulerControl } from "@/components/dashboard/scheduler-control";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
-  const { alertRegistrations } = useDashboard();
+  const { alertRegistrations, isLoading } = useDashboard();
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const pendingRegistrations = alertRegistrations.filter(
     (registration) => registration.status === "aguardando",
@@ -50,7 +51,13 @@ export default function DashboardPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
-          {pendingRegistrations.length === 0 ? (
+          {isLoading ? (
+            <>
+              <Skeleton className="h-14 w-full rounded-md" />
+              <Skeleton className="h-14 w-full rounded-md" />
+              <Skeleton className="h-14 w-full rounded-md" />
+            </>
+          ) : pendingRegistrations.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum pendente no momento.</p>
           ) : (
             pendingRegistrations.map((registration) => (

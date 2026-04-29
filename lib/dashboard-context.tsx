@@ -11,6 +11,7 @@ import {
 } from './store'
 
 interface DashboardContextType {
+  isLoading: boolean
   // People
   people: Person[]
   addPerson: (person: Omit<Person, 'id' | 'createdAt' | 'status' | 'active'>) => Promise<void>
@@ -56,7 +57,23 @@ interface DashboardContextType {
 const DashboardContext = createContext<DashboardContextType | null>(null)
 const PEOPLE_CACHE_KEY = 'dashboard_people_cache'
 
+async function parseJsonSafely<T>(response: Response, fallback: T): Promise<T> {
+  if (!response.ok) return fallback
+
+  const contentType = response.headers.get('content-type') ?? ''
+  if (!contentType.toLowerCase().includes('application/json')) {
+    return fallback
+  }
+
+  try {
+    return (await response.json()) as T
+  } catch {
+    return fallback
+  }
+}
+
 export function DashboardProvider({ children }: { children: ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true)
   const [people, setPeople] = useState<Person[]>([])
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [alertRegistrations, setAlertRegistrations] = useState<AlertRegistration[]>([])
@@ -70,39 +87,52 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [statusFilter, setStatusFilter] = useState<'all' | 'waiting' | 'triggered'>('all')
 
   const loadData = useCallback(async () => {
-    const cachedPeopleRaw = typeof window !== 'undefined' ? localStorage.getItem(PEOPLE_CACHE_KEY) : null
-    if (cachedPeopleRaw) {
-      try {
-        const cachedPeople = JSON.parse(cachedPeopleRaw) as Person[]
-        if (Array.isArray(cachedPeople) && cachedPeople.length > 0) {
-          setPeople(cachedPeople)
+    setIsLoading(true)
+    try {
+      const cachedPeopleRaw = typeof window !== 'undefined' ? localStorage.getItem(PEOPLE_CACHE_KEY) : null
+      if (cachedPeopleRaw) {
+        try {
+          const cachedPeople = JSON.parse(cachedPeopleRaw) as Person[]
+          if (Array.isArray(cachedPeople) && cachedPeople.length > 0) {
+            setPeople(cachedPeople)
+          }
+        } catch {
+          // ignore invalid cache payload
         }
-      } catch {
-        // ignore invalid cache payload
       }
-    }
 
-    const [peopleRes, alertsRes, schedulerRes, registrationsRes] = await Promise.all([
-      fetch('/api/people', { cache: 'no-store' }),
-      fetch('/api/alerts', { cache: 'no-store' }),
-      fetch('/api/scheduler', { cache: 'no-store' }),
-      fetch('/api/alerts?type=registrations', { cache: 'no-store' }),
-    ])
+      const [peopleRes, alertsRes, schedulerRes, registrationsRes] = await Promise.all([
+        fetch('/api/people', { cache: 'no-store' }),
+        fetch('/api/alerts', { cache: 'no-store' }),
+        fetch('/api/scheduler', { cache: 'no-store' }),
+        fetch('/api/alerts?type=registrations', { cache: 'no-store' }),
+      ])
 
-    const peopleData = (await peopleRes.json()) as { people: Person[] }
-    const alertsData = (await alertsRes.json()) as { alerts: Alert[] }
-    const schedulerData = (await schedulerRes.json()) as { scheduler: SchedulerState }
-    const registrationsData = (await registrationsRes.json()) as {
-      registrations: AlertRegistration[]
-    }
+      const peopleData = await parseJsonSafely<{ people: Person[] }>(peopleRes, { people: [] })
+      const alertsData = await parseJsonSafely<{ alerts: Alert[] }>(alertsRes, { alerts: [] })
+      const schedulerData = await parseJsonSafely<{ scheduler: SchedulerState }>(schedulerRes, {
+        scheduler: {
+          isRunning: false,
+          isEnabled: true,
+          frequency: '30min',
+          lastScanTime: null,
+        },
+      })
+      const registrationsData = await parseJsonSafely<{ registrations: AlertRegistration[] }>(
+        registrationsRes,
+        { registrations: [] }
+      )
 
-    setPeople(peopleData.people ?? [])
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(PEOPLE_CACHE_KEY, JSON.stringify(peopleData.people ?? []))
+      setPeople(peopleData.people ?? [])
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(PEOPLE_CACHE_KEY, JSON.stringify(peopleData.people ?? []))
+      }
+      setAlerts(alertsData.alerts ?? [])
+      setScheduler(schedulerData.scheduler)
+      setAlertRegistrations(registrationsData.registrations ?? [])
+    } finally {
+      setIsLoading(false)
     }
-    setAlerts(alertsData.alerts ?? [])
-    setScheduler(schedulerData.scheduler)
-    setAlertRegistrations(registrationsData.registrations ?? [])
   }, [])
 
   useEffect(() => {
@@ -212,6 +242,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   return (
     <DashboardContext.Provider
       value={{
+        isLoading,
         people,
         addPerson,
         updatePerson,

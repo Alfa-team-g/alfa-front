@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ export default function PeoplePage() {
     alerts,
     alertRegistrations,
     updateAlertRegistrationStatus,
+    isLoading,
     storeFilter,
     setStoreFilter,
     statusFilter,
@@ -124,7 +126,13 @@ export default function PeoplePage() {
           <CardTitle>Alertas vinculados</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {filteredRegistrations.length === 0 ? (
+          {isLoading ? (
+            <>
+              <Skeleton className="h-16 w-full rounded-md" />
+              <Skeleton className="h-16 w-full rounded-md" />
+              <Skeleton className="h-16 w-full rounded-md" />
+            </>
+          ) : filteredRegistrations.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {alertRegistrations.length === 0
                 ? "Nenhum alerta cadastrado para pessoas."
