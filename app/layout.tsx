@@ -7,25 +7,15 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Miles Tracker - Livelo Promotion Monitor',
-  description: 'Track and get notified when your desired Livelo promotions become available',
-  generator: 'v0.app',
+  title: {
+    default: 'Alfa Team | Monitor de Promocoes Livelo',
+    template: '%s | Alfa Team',
+  },
+  description: 'Painel Alfa Team para monitoramento de promocoes Livelo e alertas em tempo real.',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/alfa-logo.png',
+    shortcut: '/alfa-logo.png',
+    apple: '/alfa-logo.png',
   },
 }
 
@@ -35,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
+    <html lang="pt-BR" className="bg-background">
       <body className="font-sans antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
