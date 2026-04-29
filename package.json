@@ -2,14 +2,12 @@
   "name": "livelo-monitor",
   "version": "1.0.0",
   "private": true,
-  "description": "Monitor de promoções de parceiros Livelo",
+  "description": "Painel web do monitor de promoções Livelo",
   "scripts": {
-    "start": "ts-node src/index.ts",
-    "monitor": "ts-node src/index.ts --now",
-    "test-notify": "ts-node src/index.ts --test-notify",
-    "scheduler": "ts-node src/cron.ts",
-    "build": "tsc",
-    "lint": "eslint src/**/*.ts"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
